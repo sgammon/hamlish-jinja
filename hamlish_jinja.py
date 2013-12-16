@@ -10,11 +10,11 @@ import os.path
 from jinja2 import TemplateSyntaxError, nodes
 from jinja2.ext import Extension
 
-__version__ = '0.3.3-dev'
+__version__ = '0.3.4-dev'
 
 
-begin_tag_rx = r'\{%\-?\s*haml.*?%\}'
-end_tag_rx = r'\{%\-?\s*endhaml\s*\-?%\}'
+begin_tag_rx = r'\[%\-?\s*haml.*?%\]'
+end_tag_rx = r'\[%\-?\s*endhaml\s*\-?%\]'
 
 begin_tag_m = re.compile(begin_tag_rx)
 end_tag_m = re.compile(end_tag_rx)
@@ -27,11 +27,11 @@ class HamlishExtension(Extension):
 
         environment.extend(
             hamlish_mode='compact',
-            hamlish_file_extensions=('.haml',),
-            hamlish_indent_string='    ',
+            hamlish_file_extensions=('.haml','.html'),
+            hamlish_indent_string='  ',
             hamlish_newline_string='\n',
             hamlish_debug=False,
-            hamlish_enable_div_shortcut=False,
+            hamlish_enable_div_shortcut=True,
             hamlish_from_string=self._from_string
         )
 
