@@ -27,7 +27,7 @@ class HamlishExtension(Extension):
 
         environment.extend(
             hamlish_mode='compact',
-            hamlish_file_extensions=('.haml','.html'),
+            hamlish_file_extensions=('.haml',),
             hamlish_indent_string='  ',
             hamlish_newline_string='\n',
             hamlish_debug=False,
