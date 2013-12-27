@@ -4,14 +4,17 @@
 # License: BSD, see LICENSE for more details.
 #
 
+
+# stdlib
 import re
 import os.path
 
-from jinja2 import TemplateSyntaxError, nodes
-from jinja2.ext import Extension
+# jinja2
+from jinja2 import TemplateSyntaxError, nodes, ext
 
-__version__ = '0.3.4-dev'
 
+## Globals
+__version__ = '0.3.5-dev'
 
 begin_tag_rx = r'\[%\-?\s*haml.*?%\]'
 end_tag_rx = r'\[%\-?\s*endhaml\s*\-?%\]'
@@ -20,9 +23,15 @@ begin_tag_m = re.compile(begin_tag_rx)
 end_tag_m = re.compile(end_tag_rx)
 
 
-class HamlishExtension(Extension):
+
+class HamlishExtension(ext.Extension):
+
+    '''  '''
 
     def __init__(self, environment):
+
+        '''  '''
+
         super(HamlishExtension, self).__init__(environment)
 
         environment.extend(
@@ -35,8 +44,10 @@ class HamlishExtension(Extension):
             hamlish_from_string=self._from_string
         )
 
-
     def preprocess(self, source, name, filename=None):
+
+        '''  '''
+
         if name is None or os.path.splitext(name)[1] not in \
             self.environment.hamlish_file_extensions:
             return source
@@ -49,8 +60,9 @@ class HamlishExtension(Extension):
         except TemplateSyntaxError as e:
             raise TemplateSyntaxError(e.message, e.lineno, name=name, filename=filename)
 
-
     def get_preprocessor(self, mode):
+
+        '''  '''
 
         placeholders = {
             'block_start_string': self.environment.block_start_string,
@@ -65,7 +77,7 @@ class HamlishExtension(Extension):
                 **placeholders)
         elif mode == 'debug':
             output = Output(
-                indent_string='   ',
+                indent_string='  ',
                 newline_string='\n',
                 debug=True,
                 **placeholders)
@@ -76,10 +88,12 @@ class HamlishExtension(Extension):
                 debug=self.environment.hamlish_debug,
                 **placeholders)
 
-        return Hamlish(output, self.environment.hamlish_enable_div_shortcut)
-
+        return Hamlish(output, self.environment.hamlish_enable_div_shortcut, (mode == 'debug'))
 
     def _from_string(self, source, globals=None, template_class=None):
+
+        '''  '''
+
         env = self.environment
         globals = env.make_globals(globals)
         cls = template_class or env.template_class
@@ -93,16 +107,22 @@ class HamlishExtension(Extension):
 
 class HamlishTagExtension(HamlishExtension):
 
+    '''  '''
+
     tags = set(['haml'])
 
-
     def _get_lineno(self, source):
+
+        '''  '''
+
         matches = re.finditer(r"\n", source)
         if matches:
             return len(tuple(matches))
         return 0
 
     def parse(self, parser):
+
+        '''  '''
 
         haml_data = parser.parse_statements(['name:endhaml'])
         parser.stream.expect('name:endhaml')
@@ -112,6 +132,9 @@ class HamlishTagExtension(HamlishExtension):
         ]
 
     def preprocess(self, source, name, filename = None):
+
+        '''  '''
+
         ret_source = ''
         start_pos = 0
 
@@ -144,37 +167,36 @@ class HamlishTagExtension(HamlishExtension):
 
 
 class TemplateIndentationError(TemplateSyntaxError):
+
+    '''  '''
+
     pass
 
 
 class Hamlish(object):
 
-    INLINE_DATA_SEP = ' << '
+    '''  '''
 
-    SELF_CLOSING_TAG = '.'
-    JINJA_TAG = '-'
-    JINJA_VARIABLE = '='
     HTML_TAG = '%'
-    ESCAPE_LINE = '\\'
-    PREFORMATED_LINE = '|'
-    CONTINUED_LINE = '\\'
+    JINJA_TAG = '-'
     ID_SHORTCUT = '#'
+    ESCAPE_LINE = '\\'
+    LINE_COMMENT = (';', '//')
+    JINJA_VARIABLE = '='
     CLASS_SHORTCUT = '.'
-    LINE_COMMENT = ';'
+    CONTINUED_LINE = '\\'
+    SELF_CLOSING_TAG = '.'
+    PREFORMATED_LINE = '|'
+    INLINE_DATA_SEP = ' << '
     NESTED_TAGS_SEP = ' -> '
 
-
-
     #Which haml tags that can contain inline data
-    _inline_data_tags = set([HTML_TAG, JINJA_TAG])
+    _inline_data_tags = set([JINJA_TAG] + list(HTML_TAG))
 
     #Which html tags that can start a line with nested tags
     _nested_tags = set([HTML_TAG, JINJA_TAG])
 
-
     _div_shorcut_re = re.compile(r'^(\s*)([#\.])', re.M)
-
-
 
     _self_closing_jinja_tags = set([
         'include', 'extends', 'import', 'set', 'from', 'do', 'break',
@@ -185,33 +207,37 @@ class Hamlish(object):
         'br', 'img', 'link', 'hr', 'meta', 'input'
     ])
 
-
     _extended_tags = {
         'else' : set(['if', 'for']),
         'elif' : set(['if']),
         'pluralize' : set(['trans'])
     }
 
+    def __init__(self, output, use_div_shortcut=False, debug=False):
 
-    def __init__(self, output, use_div_shortcut=False):
+        '''  '''
+
+        self.debug = debug
         self.output = output
         self._use_div_shortcut = use_div_shortcut
 
     def convert_source(self, source):
 
+        '''  '''
+
         tree = self.get_haml_tree(source)
         return self.output.create(tree)
 
-
-
     def get_haml_tree(self, source):
+
+        '''  '''
 
         blocks = self._get_haml_tree(source)
         return self._create_extended_jinja_tags(blocks)
 
-
-
     def _get_haml_tree(self, source):
+
+        '''  '''
 
         source_lines = self._get_source_lines(source)
 
@@ -263,8 +289,9 @@ class Hamlish(object):
 
         return root.children
 
-
     def _get_source_lines(self, source):
+
+        '''  '''
 
         if  self._use_div_shortcut:
             source = self._div_shorcut_re.sub(r'\1%div\2', source)
@@ -277,11 +304,11 @@ class Hamlish(object):
         for line in source.rstrip().split('\n'):
 
             line = line.rstrip()
-
-
-            if line and line.lstrip()[0] == self.LINE_COMMENT:
-                #Add empty line for debug mode
-                lines.append('')
+            lstrip = line.lstrip()
+            if line and (any((lstrip.startswith(i) for i in self.LINE_COMMENT))):
+                for i in self.LINE_COMMENT:
+                    if lstrip.startswith(i) and self.debug:
+                        lines.append('')
 
             elif line and line[-1] == self.CONTINUED_LINE:
 
@@ -309,8 +336,9 @@ class Hamlish(object):
 
         return lines
 
-
     def _parse_line(self, lineno, line):
+
+        '''  '''
 
         inline_data = None
 
@@ -333,10 +361,11 @@ class Hamlish(object):
             return InlineData(node, inline_data)
         return node
 
-
     def _parse_node(self, lineno, line):
 
-        if line.startswith(self.HTML_TAG):
+        '''  '''
+
+        if any((line.startswith(i) for i in self.HTML_TAG)):
             return self._parse_html(lineno, line)
         elif line.startswith(self.JINJA_TAG):
             return self._parse_jinja(lineno, line)
@@ -349,8 +378,9 @@ class Hamlish(object):
 
         return TextNode(line)
 
-
     def _has_inline_data(self, line):
+
+        '''  '''
 
         if line[0] not in self._inline_data_tags:
             return False
@@ -359,11 +389,15 @@ class Hamlish(object):
 
     def _parse_inline_data(self, line):
 
+        '''  '''
+
         data = line.split(self.INLINE_DATA_SEP, 1)
 
         return data[0].rstrip(), data[1].lstrip()
 
     def _has_nested_tags(self, line):
+
+        '''  '''
 
         if line[0] not in self._nested_tags:
             return False
@@ -371,6 +405,8 @@ class Hamlish(object):
         return self.NESTED_TAGS_SEP in line
 
     def _parse_nested_tags(self, lineno, line):
+
+        '''  '''
 
         tags = line.split(self.NESTED_TAGS_SEP)
 
@@ -389,8 +425,9 @@ class Hamlish(object):
 
         return NestedTags(nodes)
 
-
     def _parse_html(self, lineno, line):
+
+        '''  '''
 
         m = re.match('^(\w+)(.*)$', line[1:])
         if m is None:
@@ -399,7 +436,6 @@ class Hamlish(object):
 
         tag = m.group(1)
         attrs = m.group(2)
-
 
         self_closing = False
         if attrs and attrs[-1] == self.SELF_CLOSING_TAG:
@@ -410,16 +446,16 @@ class Hamlish(object):
 
         if attrs.startswith(self.ID_SHORTCUT) or \
             attrs.startswith(self.CLASS_SHORTCUT):
-
             attrs = self._parse_shortcut_attributes(attrs)
-
 
         if self_closing:
             return SelfClosingHTMLTag(tag, attrs)
         return HTMLTag(tag, attrs)
 
-
     def _parse_shortcut_attributes(self, attrs):
+
+        '''  '''
+
         orig_attrs = attrs
         value = attrs
         extra_attrs = ''
@@ -467,9 +503,9 @@ class Hamlish(object):
             return ' ' + rv
         return rv
 
-
-
     def _parse_jinja(self, lineno, line):
+
+        '''  '''
 
         m = re.match('^(\w+)(.*)$', line[1:])
         if m is None:
@@ -479,6 +515,8 @@ class Hamlish(object):
         tag = m.group(1)
         attrs = m.group(2)
 
+        if tag == 'extend': tag = 'extends'
+
         if tag in self._self_closing_jinja_tags:
             return SelfClosingJinjaTag(tag, attrs)
 
@@ -487,11 +525,10 @@ class Hamlish(object):
 
         return JinjaTag(tag, attrs)
 
-
-
     def _create_extended_jinja_tags(self, nodes):
-        """Loops through the nodes and looks for special jinja tags that
-        contains more than one tag but only one ending tag."""
+
+        ''' Loops through the nodes and looks for special jinja tags
+            that contains more than one tag but only one ending tag. '''
 
         jinja_a = None
         jinja_b = None
@@ -502,7 +539,6 @@ class Hamlish(object):
 
             if isinstance(node, EmptyLine):
                 continue
-
 
             if node.has_children():
                 node.children = self._create_extended_jinja_tags(node.children)
@@ -515,7 +551,6 @@ class Hamlish(object):
                 node.tag_name in self._extended_tags and jinja_a.tag_name not in self._extended_tags[node.tag_name]):
                 jinja_a = node
                 continue
-
 
             if node.tag_name in self._extended_tags and \
                 jinja_a.tag_name in self._extended_tags[node.tag_name]:
@@ -540,39 +575,55 @@ class Hamlish(object):
         return nodes
 
 
-
-
-
 class Node(object):
 
+    '''  '''
 
     def __init__(self):
+
+        '''  '''
+
         self.children = []
 
     def has_children(self):
-        "returns False if children is empty or contains only empty lines else True."
+
+        ''' returns False if children is empty or contains only
+            empty lines else True. '''
+
         return bool([x for x in self.children if not isinstance(x, EmptyLine)])
 
-
     def add(self, child):
+
+        '''  '''
+
         self.children.append(child)
 
-
     def can_have_children(self):
+
+        '''  '''
+
         return True
 
     def write(self, output, indent):
+
+        '''  '''
+
         pass
 
 
-
 class EmptyLine(Node):
-    "Used in debug mode."
+
+    ''' Used in debug mode. '''
 
 
 class HTMLTag(Node):
 
+    '''  '''
+
     def __init__(self, tag_name, attrs):
+
+        '''  '''
+
         self.tag_name = tag_name
         self.attrs = attrs
         super(HTMLTag, self).__init__()
@@ -580,70 +631,127 @@ class HTMLTag(Node):
 
 class JinjaTag(Node):
 
+    '''  '''
+
     def __init__(self, tag_name, attrs):
+
+        '''  '''
+
         self.tag_name = tag_name
         self.attrs = attrs
         super(JinjaTag, self).__init__()
 
+
 class ExtendedJinjaTag(Node):
+
+    '''  '''
+
     pass
 
 
 class TextNode(Node):
+
+    '''  '''
+
     def __init__(self, data):
+
+        '''  '''
+
         self.data = data
         super(TextNode, self).__init__()
 
 
 class InlineData(Node):
 
+    '''  '''
+
     def __init__(self, node, data):
+
+        '''  '''
+
         self.node = node
         self.data = data
         super(InlineData, self).__init__()
 
     def can_have_children(self):
+
+        '''  '''
+
         return False
+
 
 class NestedTags(Node):
 
+    '''  '''
+
     def __init__(self, nodes):
+
+        '''  '''
+
         self.nodes = nodes
         super(NestedTags, self).__init__()
 
     def can_have_children(self):
+
+        '''  '''
+
         #check if last node can have children
         return self.nodes[-1].can_have_children()
 
+
 class PreformatedText(TextNode):
+
+    '''  '''
+
     pass
 
 
 class SelfClosingTag(object):
+
+    '''  '''
+
     pass
+
 
 class SelfClosingJinjaTag(JinjaTag, SelfClosingTag):
 
+    '''  '''
+
     def can_have_children(self):
+
+        '''  '''
+
         return False
+
 
 class SelfClosingHTMLTag(HTMLTag, SelfClosingTag):
 
+    '''  '''
+
     def can_have_children(self):
+
+        '''  '''
+
         return False
 
 
 class JinjaVariable(TextNode):
+
+    '''  '''
+
     pass
 
 
 class ExtendingJinjaTag(JinjaTag, SelfClosingTag):
-    pass
 
+    '''  '''
+
+    pass
 
 
 class Output(object):
 
+    '''  '''
 
     def __init__(self,
                  indent_string='    ',
@@ -653,6 +761,9 @@ class Output(object):
                  block_end_string='%}',
                  variable_start_string='{{',
                  variable_end_string='}}'):
+
+        '''  '''
+
         self._indent = indent_string
         self._newline = newline_string
         self.debug = debug
@@ -664,9 +775,14 @@ class Output(object):
         self.variable_end_string = variable_end_string
 
     def reset(self):
+
+        '''  '''
+
         self.buffer = []
 
     def create(self, nodes):
+
+        '''  '''
 
         self.reset()
 
@@ -676,17 +792,28 @@ class Output(object):
             return ''.join(self.buffer)
         return ''.join(self.buffer).strip()
 
-
     def write_self_closing_html(self, node):
+
+        '''  '''
+
         self.write('<%s%s />' % (node.tag_name, node.attrs))
 
     def write_open_html(self, node):
+
+        '''  '''
+
         self.write('<%s%s>' % (node.tag_name, node.attrs))
 
     def write_close_html(self, node):
+
+        '''  '''
+
         self.write('</%s>' % node.tag_name)
 
     def write_open_jinja(self, node):
+
+        '''  '''
+
         self.write('%s %s%s %s' % (
             self.block_start_string,
             node.tag_name,
@@ -694,28 +821,47 @@ class Output(object):
             self.block_end_string))
 
     def write_close_jinja(self, node):
+
+        '''  '''
+
         self.write('%s end%s %s' % (
             self.block_start_string,
             node.tag_name,
             self.block_end_string))
 
     def write_jinja_variable(self, node):
+
+        '''  '''
+
         self.write('%s %s %s' % (
             self.variable_start_string,
             node.data,
             self.variable_end_string))
 
     def write_newline(self):
-        self.write(self._newline)
+
+        '''  '''
+
+        if self.debug:
+            self.write(self._newline)
 
     def write_indent(self, depth):
-        self.write(self._indent * depth)
+
+        '''  '''
+
+        if self.debug:
+            self.write(self._indent * depth)
 
     def write(self, data):
+
+        '''  '''
+
         self.buffer.append(data)
 
-
     def write_open_node(self, node):
+
+        '''  '''
+
         if isinstance(node, JinjaTag):
             self.write_open_jinja(node)
         elif isinstance(node, NestedTags):
@@ -732,8 +878,10 @@ class Output(object):
         elif isinstance(node, TextNode):
             self.write(node.data)
 
-
     def write_close_node(self, node):
+
+        '''  '''
+
         if isinstance(node, SelfClosingTag):
             return
         elif isinstance(node, NestedTags):
@@ -747,17 +895,15 @@ class Output(object):
         elif isinstance(node, ExtendedJinjaTag):
             self.write_close_node(node.children[0])
 
-
     def _create(self, nodes, depth=0):
+
+        '''  '''
 
         for node in nodes:
 
             if isinstance(node, EmptyLine):
-                if self.debug:
-                    self.write_newline()
+                self.write_newline()
                 continue
-
-
 
             if isinstance(node, InlineData):
                 self.write_indent(depth)
@@ -765,7 +911,6 @@ class Output(object):
                 self.write(node.data)
                 self.write_close_node(node.node)
                 self.write_newline()
-
 
             elif isinstance(node, ExtendedJinjaTag):
 
@@ -793,8 +938,6 @@ class Output(object):
 
             if node.children and not isinstance(node, ExtendedJinjaTag):
                 self._create(node.children, depth+1)
-
-
 
             if self.debug:
                 #Pop off all whitespace above this end tag
