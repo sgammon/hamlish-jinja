@@ -1,3 +1,8 @@
+**NOTE:** This version of *hamlish_jinja* is for use with `Canteen <https://pypi.python.org/sgammon/canteen>`_, a
+microframework with integrated Jinja2 support. If you'd like to use HAML in your templates *without* it, the original
+(non-*Canteen*) source is available `here <https://github.com/Pitmairen/hamlish-jinja>`_.
+
+
 ========================
 Hamlish-jinja
 ========================
@@ -5,8 +10,7 @@ Hamlish-jinja
 Overview
 ========
 
-This extension to jinja make it possible to use a haml-ish
-syntax for your jinja templates.
+This extension to jinja make it possible to use a haml-ish syntax for your jinja templates.
 
 It is implemented as a preprocessor and so it runs only
 the first time your template is parsed. So it will not
@@ -19,19 +23,17 @@ Usage
 Install
 --------
 
-You can install the latest version with
-`easy_install <http://peak.telecommunity.com/DevCenter/EasyInstall>`_
-or
-`pip <http://pypi.python.org/pypi/pip>`_
+You can install the latest version with `pip <http://pypi.python.org/pypi/pip>`_
 
 ::
 
-    easy_install Hamlish-Jinja
-    pip install Hamlish-Jinja
+    pip install git+ssh://git@github.com/keenlabs/hamlish-jinja.git#egg=hamlish_jinja
 
 
-Basic Usage
------------
+Low-level Usage
+---------------
+
+**Usage as a Jinja Extension**
 
 To use this extension you just need to add it to you jinja
 environment and use ".haml" as extension for your templates.
@@ -44,8 +46,7 @@ environment and use ".haml" as extension for your templates.
     env = Environment(extensions=[HamlishExtension])
 
 
-Configuration
--------------
+**Configuration**
 
 The extension have some configuration options.
 In the default configuration the output will be on
@@ -105,8 +106,7 @@ Example:
     env.hamlish_enable_div_shortcut=True
 
 
-Environment
------------
+**Usage with a Jinja Environment**
 *Added in version 0.2.0*
 
 The environment gets extended with a new method **hamlish_from_string**

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 """
+
 This extension to jinja make it possible to use a
 `haml <http://haml-lang.com/>`_-ish syntax for your jinja2 templates.
 
@@ -15,7 +17,8 @@ Example template::
                 %a href="{{ user.url }}" << {{ user.username }}
 
 For more information read the
-`documentation <http://github.com/Pitmairen/hamlish-jinja>`_
+`documentation <http://github.com/sgammon/hamlish-jinja>`_
+
 """
 
 
@@ -23,16 +26,16 @@ from setuptools import setup
 
 setup(
     name='Hamlish-Jinja',
-    version='0.3.3-dev',
-    description='Haml-ish syntax for jinja2 templates',
+    version='0.3.4-dev',
+    description='Hamlish syntax for use with Canteen and Jinja2 templates.',
     long_description=__doc__,
-    author='Per Myren',
-    author_email='progrper@gmail.com',
-    url='http://github.com/Pitmairen/hamlish-jinja',
+    author='Per Myren & Sam Gammon',
+    author_email='sam+hamlish@momentum.io',
+    url='https://github.com/sgammon/hamlish-jinja',
     py_modules=['hamlish_jinja'],
     install_requires=['Jinja2'],
     zip_safe=False,
-    keywords = "jinja2 templates haml",
+    keywords = "jinja2 templates haml canteen",
     platforms='any',
     classifiers=[
         'Development Status :: 4 - Beta',
