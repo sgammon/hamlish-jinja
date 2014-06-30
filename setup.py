@@ -26,7 +26,7 @@ from setuptools import setup
 
 setup(
     name='Hamlish-Jinja',
-    version='0.3.4-dev',
+    version='0.3.4-canteen',
     description='Hamlish syntax for use with Canteen and Jinja2 templates.',
     long_description=__doc__,
     author='Per Myren & Sam Gammon',
